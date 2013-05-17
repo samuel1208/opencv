@@ -1,0 +1,23 @@
+#+TITLE:  OpenCV Learning notes
+#+AUTHOR:        Samuel
+#+EMAIL:   shenfei1208@gmail.com
+
+
+* FileStorage
+* soft_cascade
+  * config.xml
+    
+    1. treeDepth must == 2
+    2. modelWinSize must be small, else "int maxPoolSize = 
+       (mw -1) * mw / 2 * (mh - 1) * mh / 2 * N_CHANNELS" will overflow;
+    3. boundingbox size = modelWinSize * 2^octave
+    4. poolSize?
+    5. model = modelWinSize*2^/shrinkage
+* AdaBoost
+  * CvBoostParams:
+    -weak_count : 弱分类器的个数
+    -weight_trim_rate : 
+         [0-1],当样本的权重小于1-weight_trim_rate 时不进入下一层迭代。设为0或1关掉这个功能。
+        一般设为0.95。为了节省计算时间(check 代码)
+ 
+* Bug

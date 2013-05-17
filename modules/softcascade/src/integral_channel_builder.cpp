@@ -219,7 +219,7 @@ void ChannelFeaturePool::fill(int desired)
     int maxPoolSize = (mw -1) * mw / 2 * (mh - 1) * mh / 2 * N_CHANNELS;
 
     int nfeatures = std::min(desired, maxPoolSize);
-    pool.reserve(nfeatures);
+    pool.reserve(nfeatures); 
 
     Random::engine eng((Random::seed_type)FEATURE_RECT_SEED);
     Random::engine eng_ch(DCHANNELS_SEED);

@@ -76,12 +76,18 @@ int main(int argc, char** argv)
     string configPath = parser.get<string>("config");
     if (configPath.empty())
     {
-        std::cout << "Configuration file is missing or empty. Could not start training." << std::endl;
+
+        std::cout << "Configuration file is missing or empty. Could not start training." << std::endl;        
+        sft::Config cfg;
+        cv::FileStorage fs("./sft_config_template.xml", cv::FileStorage::WRITE);
+
+        cfg.write(fs);
+        std::cout << "Now a template configure file \"sft_config_template.xml\" is generated out." << std::endl;
         return 0;
     }
-
     std::cout << "Read configuration from file " << configPath << std::endl;
     cv::FileStorage fs(configPath, cv::FileStorage::READ);
+    
     if(!fs.isOpened())
     {
         std::cout << "Configuration file " << configPath << " can't be opened." << std::endl;
@@ -140,6 +146,7 @@ int main(int argc, char** argv)
         cv::Ptr<Octave> boost = Octave::create(boundingBox, npositives, nnegatives, *it, shrinkage, builder);
 
         std::string path = cfg.trainPath;
+        //get the pos and neg images' path   
         sft::ScaledDataset dataset(path, *it);
 
         if (boost->train(&dataset, pool, cfg.weaks, cfg.treeDepth))

@@ -53,10 +53,10 @@ sft::ScaledDataset::ScaledDataset(const string& path, const int oct)
 {
     dprintf("%s\n", "get dataset file names...");
     dprintf("%s\n", "Positives globing...");
-    cv::glob(path + "/pos/octave_" + cv::format("%d", oct) + "/*.png", pos);
+    cv::glob(path + "/pos/octave_" + cv::format("%d", oct) + "/*.jpg", pos);
 
     dprintf("%s\n", "Negatives globing...");
-    cv::glob(path + "/neg/octave_" + cv::format("%d", oct) + "/*.png", neg);
+    cv::glob(path + "/neg/octave_" + cv::format("%d", oct) + "/*.jpg", neg);
 
     // Check: files not empty
     CV_Assert(pos.size() != size_t(0));

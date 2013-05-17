@@ -47,8 +47,9 @@ sft::Config::Config(): seed(0) {}
 
 void sft::Config::write(cv::FileStorage& fs) const
 {
-    fs << "{"
-       << "trainPath"    << trainPath
+
+    fs// <<"{"
+       <<"trainPath"    << trainPath
        << "testPath"     << testPath
 
        << "modelWinSize" << modelWinSize
@@ -69,8 +70,8 @@ void sft::Config::write(cv::FileStorage& fs) const
        << "outXmlPath"   << outXmlPath
 
        << "seed"         << seed
-       << "featureType"  << featureType
-       << "}";
+       << "featureType"  << featureType;
+        //  << "}";
 }
 
 void sft::Config::read(const cv::FileNode& node)
