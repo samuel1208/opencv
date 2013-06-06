@@ -540,7 +540,7 @@ struct SURFInvoker
         apt.resize(nOriSampleBound);
         aptw.resize(nOriSampleBound);
         DW.resize(PATCH_SZ*PATCH_SZ);
-
+ 
         /* Coordinates and weights of samples used to calculate orientation */
         Mat G_ori = getGaussianKernel( 2*ORI_RADIUS+1, SURF_ORI_SIGMA, CV_32F );
         nOriSamples = 0;
