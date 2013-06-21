@@ -1,15 +1,15 @@
 #include "CLRWeakLearner.hpp"
 #include "common.h"
+#include <stdio.h>
 #include <math.h>
 
 CLRWeakLearner:: 
-CLRWeakLearner(THandle hMem,
+CLRWeakLearner(
                int nFeaDim,
                int nIterNum,
                LR_Solve nSolveMethod ):
     CWeakLearner()
 {
-    m_hMem = hMem;
     m_nFeaDim = nFeaDim;
     m_nIterNum = nIterNum;
     m_nSolveMethod = nSolveMethod;
@@ -21,13 +21,14 @@ CLRWeakLearner(THandle hMem,
 int CLRWeakLearner:: 
 initial()
 {
+    unInitial();
     if(m_nFeaDim<1)
         return SAM_ERROR;
 
     if((0 == m_bAlphaFlag)&&(1==m_bAlphaFlag))
         unInitial();
 
-    m_pAlpha = (float *)TMemAlloc(m_hMem, (m_nFeaDim)*sizeof(float));
+    m_pAlpha = (float *)TMemAlloc(memHandle(),m_nFeaDim*sizeof(float));
     if(TNull == m_pAlpha)
         return SAM_ERROR;
 
@@ -40,7 +41,7 @@ unInitial()
 {
     if((m_pAlpha)&&(2 != m_bAlphaFlag))
     {
-        TMemFree(m_hMem, m_pAlpha);
+        TMemFree(memHandle(), m_pAlpha);
         m_pAlpha = TNull;
         m_bAlphaFlag = -1;
     }
@@ -64,14 +65,17 @@ preCalCulateForIT(double *pSum, float *pR12, float *pStep,
         rVal = SAM_ERROR;
         goto SAM_EXIT;
     }
-    pSumPos = (double *)TMemAlloc(m_hMem, m_nFeaDim*sizeof(double));
-    pSumNeg = (double *)TMemAlloc(m_hMem, m_nFeaDim*sizeof(double));
+    pSumPos = (double *)TMemAlloc(memHandle(), m_nFeaDim*sizeof(double));
+    pSumNeg = (double *)TMemAlloc(memHandle(), m_nFeaDim*sizeof(double));
 
     if((TNull == pSumPos) || (TNull == pSumNeg))
     {
         rVal = SAM_ERROR;
         goto SAM_EXIT;
     }
+
+    TMemSet(pSumPos,0, m_nFeaDim*sizeof(double));                      
+    TMemSet(pSumNeg,0, m_nFeaDim*sizeof(double));
 
     ptr = pFeaPos;
     for(i=0; i<nPosNum; i++)
@@ -80,11 +84,11 @@ preCalCulateForIT(double *pSum, float *pR12, float *pStep,
         for(j=0; j<m_nFeaDim; j++)
         {
             tempVal = ptr[j];
-            if(tempVal <= 0)
-            {
-                rVal = SAM_ERROR;
-                goto SAM_EXIT;
-            }
+            // if(tempVal <= 0)
+            // {
+            //     rVal = SAM_ERROR;
+            //     goto SAM_EXIT;
+            // }
             tempSum += tempVal;
             pSumPos[j] += tempVal;
         }
@@ -100,11 +104,11 @@ preCalCulateForIT(double *pSum, float *pR12, float *pStep,
         for(j=0; j<m_nFeaDim; j++)
         {
             tempVal = ptr[j];
-            if(tempVal <= 0)
-            {
-                rVal = SAM_ERROR;
-                goto SAM_EXIT;
-            }
+            // if(tempVal <= 0)
+            // {
+            //     rVal = SAM_ERROR;
+            //     goto SAM_EXIT;
+            // }
             tempSum += tempVal;
             pSumNeg[j] += tempVal;
         }
@@ -114,17 +118,30 @@ preCalCulateForIT(double *pSum, float *pR12, float *pStep,
     }
     
     *pStep = (float)(1.0/maxSum);
+    if(0 == maxSum)
+    {
+        printf("ERROR:: Divide zero in preCalCulateForIT\n");
+        rVal = SAM_ERROR;
+        goto SAM_EXIT;
+        
+    }
     for(j=0; j<m_nFeaDim; j++)
     {
         tempSum = pSumPos[j];
         tempVal = pSumNeg[j];
+        if(0 == tempVal)
+        {
+            printf("ERROR:: Divide zero in preCalCulateForIT\n");
+            rVal = SAM_ERROR;
+            goto SAM_EXIT;            
+        }
         pR12[j] = (float)(tempSum / tempVal);
         pSum[j] = tempSum + tempVal;
     }    
 
  SAM_EXIT:
-    if(pSumPos) TMemFree(m_hMem, pSumPos);
-    if(pSumNeg) TMemFree(m_hMem, pSumNeg);
+    if(pSumPos) TMemFree(memHandle(), pSumPos);
+    if(pSumNeg) TMemFree(memHandle(), pSumNeg);
     return rVal;
 }
 
@@ -166,10 +183,10 @@ solve_IT(float *pFeaPos, int nFeaStepPos,int nPosNum,
         goto SAM_EXIT;
     }
   
-    pR12 = (float *) TMemAlloc(m_hMem, (m_nFeaDim)*sizeof(float));
-    pSum = (double *)TMemAlloc(m_hMem, (m_nFeaDim)*sizeof(double));
-    pS1 = (double *)TMemAlloc(m_hMem, (m_nFeaDim)*sizeof(double));
-    pTemp = (double *)TMemAlloc(m_hMem, (nNegNum + nPosNum)*sizeof(double));
+    pR12 = (float *) TMemAlloc(memHandle(), (m_nFeaDim)*sizeof(float));
+    pSum = (double *)TMemAlloc(memHandle(), (m_nFeaDim)*sizeof(double));
+    pS1 = (double *)TMemAlloc(memHandle(), (m_nFeaDim)*sizeof(double));
+    pTemp = (double *)TMemAlloc(memHandle(), (nNegNum + nPosNum)*sizeof(double));
     if((TNull == pR12) || (TNull == pSum)
        ||(TNull == pS1) || (TNull == pTemp))
     {
@@ -225,6 +242,12 @@ solve_IT(float *pFeaPos, int nFeaStepPos,int nPosNum,
                 ptr += nFeaStepNeg;                
             }
             pS1[j] = val;
+            if(0 == val)
+            {
+                printf("ERROR:: Divide zero in solve_IT\n");
+                rVal = SAM_ERROR;
+                goto SAM_EXIT;
+            }
         }
         
         //
@@ -246,30 +269,41 @@ solve_IT(float *pFeaPos, int nFeaStepPos,int nPosNum,
 
  SAM_EXIT:
 
-    if(pR12) TMemFree(m_hMem, pR12);
-    if(pSum) TMemFree(m_hMem, pSum);
-    if(pS1) TMemFree(m_hMem, pS1);
-    if(pTemp) TMemFree(m_hMem, pTemp);
+    if(pR12) TMemFree(memHandle(), pR12);
+    if(pSum) TMemFree(memHandle(), pSum);
+    if(pS1) TMemFree(memHandle(), pS1);
+    if(pTemp) TMemFree(memHandle(), pTemp);
     return rVal;
 }
 
 
 int CLRWeakLearner::
-detect(float *pFea, float *pLabel)
+detect(float  *pFea, float *pOutput, int *pLabel)
 {
-    double fLabel = 0;
+    double fOutput = 0;
     int i=0;
-    if((TNull == pFea) || (TNull == pLabel) 
-       || (-1 == m_bAlphaFlag) || (0 == m_bAlphaFlag))
+    if((TNull == pFea) 
+       || ((TNull == pLabel)&& (TNull == pOutput))
+       || (-1 == m_bAlphaFlag) 
+       || (0 == m_bAlphaFlag))
         return SAM_ERROR;
 
     for(i=0; i<m_nFeaDim; i++)
-        fLabel += m_pAlpha[i] * pFea[i];
+        fOutput += m_pAlpha[i] * pFea[i];
     
-    fLabel = 1.0/ (1+ exp(-fLabel));
+    fOutput = 1.0/ (1+ exp(-fOutput));
+    fOutput -= 0.5f;
     
-    *pLabel = fLabel; 
+    if(pLabel)
+    {
+        if(fOutput>=0)
+            *pLabel = 1;
+        else
+            *pLabel = 0;
+    }
     
+    if(pOutput)
+        *pOutput = fOutput;    
     return SAM_OK;    
 }
 

@@ -23,7 +23,7 @@ int main(int argc, char **argv)
     
     CFeature  *pCFea = TNull;
     float *pFea = TNull;
-    int nFeaDim, nFeaNum;
+    int   nFeaNum, nFeaDim;
     TRECT rWin={0,0,40,40};
 
     if(argc < 1)
@@ -48,15 +48,14 @@ int main(int argc, char **argv)
 
     cvCvtColor(pImg, pGrayImg, CV_RGB2GRAY);
     
-    pCFea = new CHOGFea(NULL, (unsigned char *)pGrayImg->imageData,
-                                pGrayImg->widthStep,
-                                pGrayImg->width, 
-                                pGrayImg->height,
-                                pBlockSizeList,
-                                2,2, 500);
+    pCFea = new CHOGFea(pGrayImg->width, pGrayImg->height,
+                        pBlockSizeList, 14);
+
     rVal = pCFea->initial();
-    rVal = pCFea->extractInterImg();
-    rVal = pCFea->getFea(&pFea, &nFeaDim, &nFeaNum, rWin);
+    rVal = pCFea->extractInterImg((unsigned char *)pGrayImg->imageData,
+                                  pGrayImg->widthStep,
+                                  pGrayImg->width, pGrayImg->height,1);
+    rVal = pCFea->getFea(pFea, rWin, &nFeaNum);
     pCFea->unInitial();      
 
 

@@ -38,7 +38,9 @@
 // the use of this software, even if advised of the possibility of such damage.
 //
 //M*/
+ 	
 
+#include <pthread.h>
 #include "precomp.hpp"
 
 #if defined HAVE_FFMPEG && !defined WIN32

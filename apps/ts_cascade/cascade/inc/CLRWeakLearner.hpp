@@ -11,7 +11,7 @@ enum LR_Solve{ITERATIVE_SCALING=0};
 class CLRWeakLearner : public CWeakLearner
 {
 public :
-    CLRWeakLearner(THandle hMem,
+    CLRWeakLearner(
                    int nFeaDim,
                    int nIterNum = 10000,
                    LR_Solve nSolveMethod = ITERATIVE_SCALING );
@@ -24,9 +24,12 @@ public :
 
     virtual int  solve(float *pFeaPos, int nFeaStepPos,int nPosNum, 
                        float *pFeaNeg, int nFeaStepNeg,int nNegNum);
-
-    /*label is a probility between (0-1)*/ 
-    virtual int  detect(float *pFea, float *pLabel);  
+    /*
+      PARA:
+          pOutput : probability of the class
+          pLabel  : 0 negative, 1 positive
+    */ 
+    virtual int detect(float *pFea, float *pOutput, int *pLabel);
 
 private:    
 
@@ -39,7 +42,6 @@ private:
                  float *pFeaNeg, int nFeaStepNeg,int nNegNum);
 
 private:
-    THandle m_hMem; 
     float  *m_pAlpha;    
     int     m_nFeaDim;
     

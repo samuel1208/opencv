@@ -1,0 +1,51 @@
+<?xml version="1.0"?> 
+
+<opencv_storage>
+
+  <!--The positive and negtive samples for the first cascade layer-->
+  <posARD>/home/samuel/Data/data/smile_face_train_set/smile_set_0.ard</posARD>
+  <negARD>/home/samuel/Data/data/smile_face_train_set/non_smile_set_1.ard</negARD>
+  <negListPath>/home/samuel/Data/data/smile_face_train_set/</negListPath>
+
+  <imageSize>
+    <width>24</width>
+    <height>24</height>
+    <channel>1</channel>
+  </imageSize>
+  
+  <feaPara type_id = "FEA_PARA">    
+    <!--Feature type:  1-HOG, -->
+    <feaType>1</feaType>    
+    <!--Only for HOG and SURF-->
+    <nBlockListNum>8</nBlockListNum>
+    <blockList>
+      12 12
+      16 16
+      20 20
+      24 24
+      12 24 
+      24 12 
+      16 24
+      24 16
+    </blockList>
+  </feaPara>
+
+  
+  
+  <!--cascade parameters-->
+  <CascadePara type_id = "CASCADE_PARA">
+    <maxLayerOfCascade>10</maxLayerOfCascade>
+    <nPosNumInEachLayer>500</nPosNumInEachLayer>
+    <nNegNumInEachLayer>1000</nNegNumInEachLayer>
+	<fTP>0.9</fTP>
+	<fFP>0.3</fFP>
+
+	<!--1:Logic Regression-->
+	<weakclassifier>1</weakclassifier>
+
+    <!--1:real boost-->
+    <boost>1</boost>
+  </CascadePara>
+
+
+</opencv_storage>

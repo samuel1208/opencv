@@ -7,12 +7,20 @@ endif()
 
 project(ts_cascade)
 
-ocv_include_directories("${CMAKE_CURRENT_SOURCE_DIR}" "${OpenCV_SOURCE_DIR}/include/opencv" "/home/samuel/Project/project_self/opencv/modules/nonfree/include" "/home/samuel/Project/project_self/opencv/apps/ts_cascade/feature/src" )
+ocv_include_directories("${CMAKE_CURRENT_SOURCE_DIR}" 
+                        "${CMAKE_CURRENT_SOURCE_DIR}/include"
+                        "${OpenCV_SOURCE_DIR}/include/opencv"
+                        "${OpenCV_SOURCE_DIR}/include/" 
+                        "${OpenCV_SOURCE_DIR}/modules/contrib/include" 
+                        "/home/samuel/Project/project_self/opencv/modules/nonfree/include" 
+                        "/home/samuel/Project/project_self/opencv/apps/ts_cascade/feature/src" )
 ocv_include_modules(${OPENCV_TRAINCASCADE_DEPS})
+
 
 include_directories(include)
 include_directories(./feature/inc)
 include_directories(./cascade/inc)
+include_directories(./core/inc)
 
 
 
@@ -30,6 +38,15 @@ set(fea_files  ./cascade/src/CLRWeakLearner.cpp
 
 set(the_target ts_CLRWeakLearner)
 add_executable(${the_target} ${fea_files})
+target_link_libraries(${the_target} ${OPENCV_TRAINCASCADE_DEPS} opencv_haartraining_engine)
+
+#generate weakerLearner testbed
+aux_source_directory(./cascade/src/  boost_src)
+aux_source_directory(./feature/src/  fea_src)
+aux_source_directory(./core/src/  core_src)
+
+set(the_target ts_cascade)
+add_executable(${the_target} ${fea_src} ${boost_src} ${core_src} ./main.cpp)
 target_link_libraries(${the_target} ${OPENCV_TRAINCASCADE_DEPS} opencv_haartraining_engine)
 
 
