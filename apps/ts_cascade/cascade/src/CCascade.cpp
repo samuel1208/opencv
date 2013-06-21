@@ -127,12 +127,12 @@ initialFeaBuf()
     else 
         return SAM_ERROR;
 
-    size = m_trainPara.nPosNumInEachLayer * m_nFeaDim * m_nFeaNum;
+    size = m_trainPara.nPosNumInEachLayer * m_nFeaDim * m_nFeaNum * sizeof(float);
     m_pPosFea = (float *)TMemAlloc(memHandle(), size);
     if(TNull == m_pPosFea)
         return SAM_ERROR;
 
-    size = m_trainPara.nNegNumInEachLayer * m_nFeaDim * m_nFeaNum;
+    size = m_trainPara.nNegNumInEachLayer * m_nFeaDim * m_nFeaNum * sizeof(float);
     m_pNegFea = (float *)TMemAlloc(memHandle(), size);
     if(TNull == m_pNegFea)
         return SAM_ERROR;   

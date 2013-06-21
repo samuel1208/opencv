@@ -13,6 +13,7 @@
 #include <iostream>
 #include <string>
 #include "CCascade.hpp"
+#include "CHardCascade.hpp"
 using namespace std;
 using namespace cv;
 
@@ -96,6 +97,15 @@ int main(int argc, char **argv)
         temp.clear();
         train_para.pBlockSizeList = pBlockSizeList;
     }
+
+    pCascade = new CHardCascade(train_para);
+    rVal = pCascade->initial();
+    if(SAM_OK != rVal)
+        goto SAM_EXIT;
+
+    rVal = pCascade->train();
+    if(SAM_OK != rVal)
+        goto SAM_EXIT;
 
  SAM_EXIT:
     if(pCascade) delete pCascade;

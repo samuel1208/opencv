@@ -3,9 +3,15 @@
 <opencv_storage>
 
   <!--The positive and negtive samples for the first cascade layer-->
-  <posARD>/home/samuel/Data/data/smile_face_train_set/smile_set_0.ard</posARD>
-  <negARD>/home/samuel/Data/data/smile_face_train_set/non_smile_set_1.ard</negARD>
-  <negListPath>/home/samuel/Data/data/smile_face_train_set/</negListPath>
+  <posARD>
+    /home/samuel/Project/project_self/opencv/apps/ts_cascade/v.ard
+  </posARD>
+  <negARD>
+    /home/samuel/Project/project_self/opencv/apps/ts_cascade/non_v.ard
+  </negARD>
+  <negListPath>
+    /home/samuel/Project/project_self/opencv/apps/ts_cascade/path.txt
+  </negListPath>
 
   <imageSize>
     <width>24</width>
