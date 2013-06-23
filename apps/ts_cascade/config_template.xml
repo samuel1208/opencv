@@ -4,13 +4,13 @@
 
   <!--The positive and negtive samples for the first cascade layer-->
   <posARD>
-    /home/samuel/Project/project_self/opencv/apps/ts_cascade/v.ard
+    ../../apps/ts_cascade/v.ard
   </posARD>
   <negARD>
-    /home/samuel/Project/project_self/opencv/apps/ts_cascade/non_v.ard
+    ../../apps/ts_cascade/non_v.ard
   </negARD>
   <negListPath>
-    /home/samuel/Project/project_self/opencv/apps/ts_cascade/path.txt
+    ../../apps/ts_cascade/path.txt
   </negListPath>
 
   <imageSize>

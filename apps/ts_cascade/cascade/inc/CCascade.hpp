@@ -52,6 +52,7 @@ public :
     virtual int train()=0;
     virtual int initial();
     virtual void unInitial();
+    int detect(float *pFea, int* pLabel);
 
 protected:
 
@@ -65,15 +66,15 @@ protected:
     int  getFeaFor1stLayer();
     int  getNegFeaFromImgList(float *pNegFea, int nFeaNum,
                               int *pFeaGotNum, int bIsNeedDetect);
-    int getFeasFromImageWithFixWindow(IplImage *pImg_src, 
-                                      IplImage *pImg_template,
-                                      IplImage *pImgGray_template,
-                                      float     *pFea,
-                                      int nOffset_x, int nOffset_y,
-                                      int nStep_x,   int nStep_y,
-                                      int nWidth_win, int nHeight_win,
-                                      int nNeededFeaNum, int *pFeaGotNum,
-                                      int bIsNeedDetect);
+    int getNegFeasFromImageWithFixWindow(IplImage *pImg_src, 
+					 IplImage *pImg_template,
+					 IplImage *pImgGray_template,
+					 float     *pFea,
+					 int nOffset_x, int nOffset_y,
+					 int nStep_x,   int nStep_y,
+					 int nWidth_win, int nHeight_win,
+					 int nNeededFeaNum, int *pFeaGotNum,
+					 int bIsNeedDetect);
 
     int removeCorrectNegFea(float *pFea, int nFeaNum, int *pRemovedNum);
 protected:

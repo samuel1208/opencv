@@ -438,7 +438,7 @@ isTpAndFpOK(float *pSampleOutput,
     j=0;
     for (i=0; i<m_nNegNum; i++)
     {
-        if(pSampleOutput[i]>m_fThresholdOfBoost)
+        if(pSampleOutput[i]>=m_fThresholdOfBoost)
             j++;
     }
     if(j>m_nNegNum * m_boostPara.fFP)

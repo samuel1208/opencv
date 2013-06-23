@@ -204,7 +204,8 @@ getFeaFor1stLayer()
     imgNum = m_trainPara.nPosNumInEachLayer;
     for(i=0; i<imgNum; i++)
     {
-        fread(pImg, imgSize, 1, m_fPosArdFile);
+        if( 1 != fread(pImg, imgSize, 1, m_fPosArdFile))
+	    continue;
         rVal = m_pCFea->extractInterImg(pImg, nWidthStep,
                                             nWidth, nHeight, nChannel);
         if(SAM_OK != rVal)
@@ -227,7 +228,8 @@ getFeaFor1stLayer()
 
     for(i=0; i<imgNum; i++)
     {
-        fread(pImg, imgSize, 1, m_fNegArdFile);
+        if(1 != fread(pImg, imgSize, 1, m_fNegArdFile))
+	    continue;
         rVal = m_pCFea->extractInterImg(pImg, nWidthStep,
                                             nWidth, nHeight, nChannel);
         if(SAM_OK != rVal)
@@ -266,14 +268,18 @@ getNegFeaFromImgList(float *pNegFea, int nFeaNum,
 {
     int rVal = SAM_OK;
     char filePath[1024] = {0};
+    unsigned char *pImg_ARD = TNull;
     IplImage *pImg = TNull;
     IplImage *pImg_template = TNull;
     IplImage *pImgGray_template = TNull, *pImg_tmp = TNull;
     int nWidth_template = m_trainPara.nWidth;
     int nHeight_template = m_trainPara.nHeight;
+    int nChannel_template =  m_trainPara.nChannel;
+    int nImgSize_template = nWidth_template
+                            *nHeight_template 
+                            *nChannel_template;
     int nFeaSize = m_nFeaNum*m_nFeaDim;
     float *pFea = pNegFea;
-
     int nFeaGotNum = 0, nFeaNeedNum = nFeaNum;
     
     if(nFeaNum <1)
@@ -283,11 +289,47 @@ getNegFeaFromImgList(float *pNegFea, int nFeaNum,
                                   8, 3);
     pImgGray_template = cvCreateImage(cvSize(nWidth_template, nHeight_template),
                                   8, 1);
-
     if((TNull == pImg_template) || (TNull==pImgGray_template))
     {
         rVal = SAM_ERROR;
         goto SAM_EXIT;
+    }
+    
+    // TODO :: get sample from ard file first    
+    if(m_nNegArdImgNum>0)
+    {
+        int nLabel = -1;
+	pImg_ARD = (unsigned char *)TMemAlloc(memHandle(), nImgSize_template);
+	if(TNull == pImg_ARD)
+	    goto SAM_EXIT;
+	
+	while(!feof(m_fNegArdFile))
+	{
+	    if(1 != fread(pImg_ARD, nImgSize_template, 1, m_fNegArdFile))
+	        continue;
+	    rVal = m_pCFea->extractInterImg(pImg_ARD, nWidth_template,
+					    nWidth_template,
+					    nHeight_template,
+					    nChannel_template);
+	    if(SAM_OK != rVal)
+	        goto SAM_EXIT;
+
+	    rVal = m_pCFea->getFea(pFea,
+				   {0,0,nWidth_template, nHeight_template}, NULL);
+	    if(SAM_OK != rVal)
+	        goto SAM_EXIT;
+
+	    rVal = detect(pFea, &nLabel);
+	    if(SAM_OK != rVal)
+	        goto SAM_EXIT;
+
+	    if(1 == nLabel)
+	    {
+	        nFeaNum -- ;
+	        pFea += nFeaSize;
+	    }
+	    m_nNegArdImgNum --;
+	}
     }
 
     while(!feof(m_fNegListFile))
@@ -334,14 +376,14 @@ getNegFeaFromImgList(float *pNegFea, int nFeaNum,
                    || (nHeight_win<nHeight_template)
                    )
                     break;
-                rVal = getFeasFromImageWithFixWindow(pImg, pImg_template,
-                                                     pImgGray_template,
-                                                     pFea,
-                                                     nOffset_x, nOffset_y,
-                                                     nStep_x,   nStep_y,
-                                                     nWidth_win, nHeight_win,
-                                                     nFeaNum, &nFeaGotNum,
-                                                     bIsNeedDetect);
+                rVal = getNegFeasFromImageWithFixWindow(pImg, pImg_template,
+							pImgGray_template,
+							pFea,
+							nOffset_x, nOffset_y,
+							nStep_x,   nStep_y,
+							nWidth_win, nHeight_win,
+							nFeaNum, &nFeaGotNum,
+							bIsNeedDetect);
                 if(SAM_OK != rVal)
                     goto SAM_EXIT;
                 
@@ -361,6 +403,11 @@ getNegFeaFromImgList(float *pNegFea, int nFeaNum,
 
     rVal = SAM_OK;
  SAM_EXIT:
+    if(pImg_ARD)
+    {      
+	TMemFree(memHandle(), pImg_ARD);
+	pImg_ARD = TNull;
+    }
     if(pImg)
     {
         cvReleaseImage(&pImg); 
@@ -384,7 +431,7 @@ getNegFeaFromImgList(float *pNegFea, int nFeaNum,
 }
 
 int CCascade ::
-getFeasFromImageWithFixWindow(IplImage *pImg_src, 
+getNegFeasFromImageWithFixWindow(IplImage *pImg_src, 
                               IplImage *pImg_template,
                               IplImage *pImgGray_template,
                               float     *pFea,
@@ -452,21 +499,11 @@ getFeasFromImageWithFixWindow(IplImage *pImg_src,
             if(1 == bIsNeedDetect)
             {
                 int nLabel = -1;
-                bIsFeaOk = 1;
-                std::vector<CBoost *>::iterator Boost_iter = 
-                    m_vStrongClassifierPool.begin();
-                for(;Boost_iter!= m_vStrongClassifierPool.end(); Boost_iter++)
-                {
-                    rVal = (*Boost_iter)->detect(_pFea,TNull, &nLabel);
-                    if(SAM_OK != rVal)
-                        goto SAM_EXIT;
-                    if(0 != nLabel)
-                    {
-                        bIsFeaOk = 0;
-                        break;
-                    }
-                }
-                
+		rVal = detect(_pFea, &nLabel);
+		if(SAM_OK != rVal)
+		    goto  SAM_EXIT;
+		if(1 == nLabel)
+		    bIsFeaOk = 1;
             }
             else 
                 bIsFeaOk = 1;
@@ -494,7 +531,7 @@ removeCorrectNegFea(float *pFea, int nFeaNum, int *pRemovedNum)
 {
     std::vector<CBoost *>::iterator boost_iter;
     float *_pFea = TNull;
-    int nFeaSize = m_nFeaDim * m_nFeaDim;
+    int nFeaSize = m_nFeaDim * m_nFeaNum;
     int nRemovedNum = 0;
     int i; 
 
@@ -506,33 +543,32 @@ removeCorrectNegFea(float *pFea, int nFeaNum, int *pRemovedNum)
         
     _pFea = pFea;
     
-    for(i=0; i<nFeaNum; i++)
+    for(; nFeaNum>0; nFeaNum--)
     {
-        boost_iter = m_vStrongClassifierPool.begin();
-        for(;boost_iter!= m_vStrongClassifierPool.end(); boost_iter++)
-        {
-            int nLabel = -1;
-            
-            if(SAM_OK != (*boost_iter)->detect(_pFea,TNull, &nLabel))
-                return SAM_ERROR;
-            
-            if(0 == nLabel)
-            {
-                // remove the fea
-                {
-                    float *__pFea = _pFea;
-                    int j=0;
-                    for(j=0; j<nFeaNum; j++)
-                    {
-                        TMemCpy(__pFea, __pFea+nFeaSize, nFeaSize);
-                        __pFea += nFeaSize;
-                    }
-                }
-                nRemovedNum ++; 
-            }
-        }        
-        nFeaNum --;
-        _pFea += nFeaSize; 
+        /*
+	  TODO :: just need to check the last strong classifier, 
+	          need to improve
+        */
+	int nLabel = -1;
+	if(SAM_OK != detect(_pFea, &nLabel))
+	    return SAM_ERROR;
+	if(0 == nLabel)
+	{
+	  // remove the fea
+	    {
+	        float *__pFea = _pFea;
+		int j=0;
+		// TODO : remove fea outside 
+		for(j=0; j<nFeaNum; j++)
+		{
+		    TMemCpy(__pFea, __pFea+nFeaSize, nFeaSize);
+		    __pFea += nFeaSize;
+		}
+	    }
+	    nRemovedNum ++; 
+	}
+	else
+	    _pFea += nFeaSize; 
     }
 
     *pRemovedNum = nRemovedNum;
@@ -574,4 +610,29 @@ unInitial()
     closeSampleFile();
     unInitialFeaBuf();
     releaseBoostVector();
+}
+
+int CCascade::
+detect(float *pFea, int* pLabel)
+{
+    int nLabel = -1;
+    std::vector<CBoost *>::iterator Boost_iter;
+
+    if((TNull == pFea) || (TNull == pLabel))
+        return SAM_ERROR;
+  
+    Boost_iter = m_vStrongClassifierPool.begin();
+    for(;Boost_iter!= m_vStrongClassifierPool.end(); Boost_iter++)
+    {
+        if(SAM_OK !=(*Boost_iter)->detect(pFea,TNull, &nLabel))
+	{
+	    *pLabel = -1;
+	    return SAM_ERROR;
+	}
+	if(0 == nLabel)
+	    break;
+    }
+    
+    *pLabel = nLabel;
+    return SAM_OK;
 }
