@@ -9,3 +9,5 @@ Github pull requests are the convenient way to contribute to OpenCV project. Goo
 * Don't messed by "oops" commits
 
 You can find more detailes about contributing process on http://opencv.org/contribute.html
+|-----|
+|-----|
